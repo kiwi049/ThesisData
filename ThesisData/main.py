@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-import plotly.figure_factory as ff
 import plotly.express as px
 from plotly.subplots import make_subplots
 import time
@@ -11,6 +10,14 @@ import os
 from scipy import stats
 
 pd.set_option('display.max_columns', None)
+
+
+def import_war():
+    df_war = pd.read_excel(os.path.join('input', 'War.xlsx'))
+    df_war['Date Time'] = pd.to_datetime(df_war['Date Time'], format='%m/%d/%Y %H:%M')
+    df_war = df_war.sort_values(by='Date Time', ignore_index=True)
+    print('Imported war calendar')
+    return df_war
 
 
 def import_min_data(instrument):
@@ -22,8 +29,9 @@ def import_min_data(instrument):
             df_file = df_file.dropna(subset=['Close', 'Volume'])
             df_file = df_file.drop(columns=['Local Date'])
             df = pd.concat([df, df_file], ignore_index=True)
+    df = df[df['Volume'] >= 0]
     df = df.sort_values('Local Time', ignore_index=True)
-    # df.to_excel(os.path.join('output', file_type + '_combined.xlsx'))
+    df.to_excel(os.path.join('output', instrument + '_min_combined.xlsx'))
     # raise Exception
     print(f'Imported minute data of {instrument}')
     return df
@@ -34,7 +42,7 @@ def import_day_data(instrument):
     df = df.dropna(axis=1, how='all')
     df = df.dropna(subset=['Close', 'Volume'])
     df = df.sort_values('Exchange Date', ignore_index=True)
-    # df.to_excel(os.path.join('output', file_type + '_processed.xlsx'))
+    df.to_excel(os.path.join('output', instrument + '_day_processed.xlsx'))
     print(f'Imported daily data of {instrument}')
     return df
 
@@ -56,7 +64,7 @@ def generate_stat(df: pd.DataFrame, instrument):
 
     df_stat.to_excel(os.path.join('output', instrument + '_stat.xlsx'))
     # raise Exception
-    print(f'Finished generating volatility and volume statistics.')
+    print(f'Finished generating volatility and volume statistics')
     return
 
 
@@ -79,7 +87,6 @@ def generate_plotting(df: pd.DataFrame, instrument):
     df['Date String'] = df['Local Time'].dt.strftime('%Y-%m-%d')
     df_day = df.groupby(['Date String'])[['Log Realized Vola', 'Volume']].sum()
     df_day['Log Realized Vola'] = np.log10(((df_day['Log Realized Vola'] + 1) ** 365 - 1) * 100)
-    print(df_day['Log Realized Vola'])
     df_day['Volume'] = np.log10(df_day['Volume'] / 1000000)
     df_day = df_day.reset_index()
 
@@ -111,7 +118,7 @@ def import_news(instrument):
     df_ec = pd.read_excel(os.path.join('input', 'ECO21-22-Eurozone.xlsx'))
     df_us = pd.read_excel(os.path.join('input', 'ECO21-22-US.xlsx'))
 
-    ec_list = ['ECB Main refinancing rate', 'CPI YoY', 'GDP SA QoQ', 'S&P Global Eurozone Manufacturing PMI']
+    ec_list = ['ECB Main Refinancing Rate', 'CPI YoY', 'GDP SA QoQ', 'S&P Global Eurozone Manufacturing PMI']
     us_list = ['Initial Jobless Claims', 'ISM Manufacturing', 'Change in Nonfarm Payrolls',
                'CPI MoM', 'FOMC Rate Decision (Upper Bound)', 'GDP Annualized QoQ']
     fgbl_list = ['S&P Global/BME Germany Manufacturing PMI', 'CPI YoY', 'ZEW Survey Expectations',
@@ -143,7 +150,7 @@ def import_news(instrument):
 def generate_intraday_pattern(df, df_ann, instrument):
     df['Date String'] = df['Local Time'].dt.strftime('%Y-%m-%d')
     df_ann['Date String'] = df_ann['Date Time'].dt.strftime('%Y-%m-%d')
-    df_intraday = df[~df['Date String'].isin(df_ann['Date String'])]
+    df_intraday = df[~df['Date String'].isin(df_ann['Date String'])].copy()
     df_intraday['Minute'] = df['Local Time'].dt.strftime('%H:%M')
     df_intraday['Intra Vola'] = np.sqrt(df_intraday['%Chg'].pow(2))
     df_intraday = df_intraday.groupby('Minute')[['Intra Vola', 'Volume']].mean()
@@ -174,18 +181,20 @@ def generate_intraday_pattern(df, df_ann, instrument):
     return
 
 
-def generate_ann_pattern(df, df_ann, instrument):
-    if instrument == 'stoxx':
+def generate_ann_pattern(df, df_news, instrument, war_flag=False):
+    if war_flag:
+        region_list = [['EC']]
+    elif instrument == 'stoxx':
         region_list = [['EC'], ['US'], ['EC', 'US']]
     else:
         region_list = [['GE'], ['EC', 'US', 'GE']]
 
     for region in region_list:
         region_str = '_'.join(region)
-        df_ann_region = df_ann[df_ann['Region'].isin(region)]
+        df_news_region = df_news[df_news['Region'].isin(region)]
         pattern_vola_data = []
         pattern_volume_data = []
-        for i, row in df_ann_region.iterrows():
+        for i, row in df_news_region.iterrows():
             min_range = list(range(-15, 16))
             news_vola_line = []
             news_volume_line = []
@@ -220,27 +229,33 @@ def generate_ann_pattern(df, df_ann, instrument):
         fig2.update_traces(marker={'size': 15})
         fig2.add_vline(x=0, line_dash="dash")
 
-        plotly.offline.plot(fig1, filename=os.path.join('output', instrument + '_' + region_str + '_news_vola.html'))
-        plotly.offline.plot(fig2, filename=os.path.join('output', instrument + '_' + region_str + '_news_volume.html'))
+        name = instrument + '_war_' + region_str if war_flag else instrument + '_' + region_str
+        plotly.offline.plot(fig1, filename=os.path.join('output', name + '_news_vola.html'))
+        plotly.offline.plot(fig2, filename=os.path.join('output', name + '_news_volume.html'))
 
-    print(f'Plotted the pattern before and after the news announcements for {instrument}')
+    if war_flag:
+        print(f'Plotted the pattern before and after the war announcements for {instrument}')
+    else:
+        print(f'Plotted the pattern before and after the news announcements for {instrument}')
     return
 
 
-def generate_ann_plot(df, df_ann, instrument):
-    if instrument == 'stoxx':
+def generate_ann_plot(df, df_news, instrument, war_flag=False):
+    if war_flag:
+        region = ['EC']
+    elif instrument == 'stoxx':
         region = ['EC', 'US']
     else:
         region = ['EC', 'US', 'GE']
-    df_ann_region = df_ann[df_ann['Region'].isin(region)]
+    df_news_region = df_news[df_news['Region'].isin(region)]
     plot_data = []
-    for i, row in df_ann_region.iterrows():
+    for i, row in df_news_region.iterrows():
         min_range_pre = list(range(-14, 1))
         min_range_post = list(range(2, 17))
         pre_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_pre]
         post_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_post]
-        df_pre = df[df['Local Time'].isin(pre_dt_list)]
-        df_post = df[df['Local Time'].isin(post_dt_list)]
+        df_pre = df[df['Local Time'].isin(pre_dt_list)].copy()
+        df_post = df[df['Local Time'].isin(post_dt_list)].copy()
         df_pre['Volatility'] = df_pre['%Chg'].pow(2)
         df_post['Volatility'] = df_post['%Chg'].pow(2)
 
@@ -269,27 +284,34 @@ def generate_ann_plot(df, df_ann, instrument):
     fig2.add_trace(fig2_trace2, secondary_y=False)
     fig2.update_layout({'title': go.layout.Title(text='Log Volume Intensity')})
 
-    plotly.offline.plot(fig1, filename=os.path.join('output', instrument + '_news_vola_plot.html'))
-    plotly.offline.plot(fig2, filename=os.path.join('output', instrument + '_news_volume_plot.html'))
+    name = instrument + '_war_' if war_flag else instrument
+    plotly.offline.plot(fig1, filename=os.path.join('output', name + '_news_vola_plot.html'))
+    plotly.offline.plot(fig2, filename=os.path.join('output', name + '_news_volume_plot.html'))
 
+    if war_flag:
+        print(f'Plotted the volume and vola change around the war events for {instrument}')
+    else:
+        print(f'Plotted the volume and vola change around the announcements for {instrument}')
     return
 
 
-def generate_normalized_return(df, df_ann, instrument):
-    if instrument == 'stoxx':
+def generate_normalized_return(df, df_news, instrument, war_flag=False):
+    if war_flag:
+        region = ['EC']
+    elif instrument == 'stoxx':
         region = ['EC', 'US']
     else:
         region = ['EC', 'US', 'GE']
-    df_ann_region = df_ann[df_ann['Region'].isin(region)]
+    df_news_region = df_news[df_news['Region'].isin(region)]
     df_norm_list = []
-    for i, row in df_ann_region.iterrows():
+    for i, row in df_news_region.iterrows():
         min_range_pre = list(range(-14, 1))
         min_range_post = list(range(2, 17))
         pre_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_pre]
         post_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_post]
         event_dt = row['Date Time'] + timedelta(minutes=1)
-        df_pre = df[df['Local Time'].isin(pre_dt_list)]
-        df_post = df[df['Local Time'].isin(post_dt_list)]
+        df_pre = df[df['Local Time'].isin(pre_dt_list)].copy()
+        df_post = df[df['Local Time'].isin(post_dt_list)].copy()
         df_pre['Volatility'] = df_pre['%Chg'].pow(2)
         df_post['Volatility'] = df_post['%Chg'].pow(2)
         series_event = df.loc[df['Local Time'] == event_dt, '%Chg'].reset_index(drop=True)
@@ -315,26 +337,35 @@ def generate_normalized_return(df, df_ann, instrument):
     fig = plotly.subplots.make_subplots(specs=[[{"secondary_y": False}]])
     fig.add_trace(trace_pre)
     fig.add_trace(trace_post, secondary_y=False)
+    fig.update_xaxes(title_text='Normalized Return')
+    fig.update_yaxes(title_text='Average Volume     10,000 shares')
     #fig.update_xaxes(tickvals=df_norm.index, ticktext=df_norm['Norm Return'], tickmode='array')
 
-    plotly.offline.plot(fig, filename=os.path.join('output', instrument + '_normalized_return.html'))
+    name = instrument + '_war_' if war_flag else instrument
+    plotly.offline.plot(fig, filename=os.path.join('output', name + '_normalized_return.html'))
+    if war_flag:
+        print(f'Generated normalized return chart around war events for {instrument}')
+    else:
+        print(f'Generated normalized return chart around announcements for {instrument}')
     return
 
 
-def generate_jump_regression(df, df_ann, instrument):
-    if instrument == 'stoxx':
+def generate_jump_regression(df, df_news, instrument, war_flag=False):
+    if war_flag:
+        region = ['EC']
+    elif instrument == 'stoxx':
         region = ['EC', 'US']
     else:
         region = ['EC', 'US', 'GE']
-    df_ann_region = df_ann[df_ann['Region'].isin(region)]
+    df_news_region = df_news[df_news['Region'].isin(region)]
     df_jump_list = []
-    for i, row in df_ann_region.iterrows():
+    for i, row in df_news_region.iterrows():
         min_range_pre = list(range(-14, 1))
         min_range_post = list(range(2, 17))
         pre_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_pre]
         post_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_post]
-        df_pre = df[df['Local Time'].isin(pre_dt_list)]
-        df_post = df[df['Local Time'].isin(post_dt_list)]
+        df_pre = df[df['Local Time'].isin(pre_dt_list)].copy()
+        df_post = df[df['Local Time'].isin(post_dt_list)].copy()
         df_pre['Volatility'] = df_pre['%Chg'].pow(2)
         df_post['Volatility'] = df_post['%Chg'].pow(2)
 
@@ -348,38 +379,98 @@ def generate_jump_regression(df, df_ann, instrument):
     df_jump = pd.DataFrame(df_jump_list, columns=columns)
 
     fig = px.scatter(df_jump, x='Log Volatility Jump', y='Log Volume Intensity Jump', trendline='ols')
-    plotly.offline.plot(fig, filename=os.path.join('output', instrument + '_vola_jump.html'))
+    name = instrument + '_war_' if war_flag else instrument
+    plotly.offline.plot(fig, filename=os.path.join('output', name + '_vola_jump.html'))
+    if war_flag:
+        print(f'Plotted vola jump of war events for {instrument}')
+        print(f'Average log volatility jump of war events for {instrument}: {df_jump["Log Volatility Jump"].mean()}')
+        print(f'Average log volume intensity jump of war events for {instrument}: {df_jump["Log Volume Intensity Jump"].mean()}')
+    else:
+        print(f'Plotted vola jump of announcements for {instrument}')
+        print(f'Average log volatility jump of announcements for {instrument}: {df_jump["Log Volatility Jump"].mean()}')
+        print(f'Average log volume intensity jump of announcements for {instrument}: {df_jump["Log Volume Intensity Jump"].mean()}')
     results = px.get_trendline_results(fig)
     print(results.px_fit_results.iloc[0].summary())
 
     return
 
 
+def generate_ann_stat(df, df_news, instrument):
+    if instrument == 'stoxx':
+        region = ['EC', 'US']
+    else:
+        region = ['EC', 'US', 'GE']
+    df_news_region = df_news[df_news['Region'].isin(region)]
+    event_list = df_news_region['Event'].unique()
+    event_list = np.insert(event_list, 0, 'All')
+    stat_data = []
+    for event in event_list:
+        if event == 'All':
+            df_event = df_news
+        else:
+            df_event = df_news[df_news['Event'] == event].reset_index(drop=True)
+        df_jump_list = []
+        for i, row in df_event.iterrows():
+            min_range_pre = list(range(-14, 1))
+            min_range_post = list(range(2, 17))
+            pre_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_pre]
+            post_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_post]
+            df_pre = df[df['Local Time'].isin(pre_dt_list)].copy()
+            df_post = df[df['Local Time'].isin(post_dt_list)].copy()
+            df_pre['Volatility'] = df_pre['%Chg'].pow(2)
+            df_post['Volatility'] = df_post['%Chg'].pow(2)
+
+            if df_pre.empty or df_post.empty:
+                continue
+            else:
+                line_data = [
+                    np.log10(np.sqrt(df_post['Volatility'].mean())) - np.log10(np.sqrt(df_pre['Volatility'].mean())),
+                    np.log10(df_post['Volume'].mean()) - np.log10(df_pre['Volume'].mean())]
+                df_jump_list.append(line_data)
+        columns = ['Log Volatility Jump', 'Log Volume Intensity Jump']
+        df_jump = pd.DataFrame(df_jump_list, columns=columns)
+
+        region = df_event.loc[0, 'Region']
+        num_obs = len(df_event)
+        avg_vola = df_jump['Log Volatility Jump'].mean()
+        avg_volume = df_jump['Log Volume Intensity Jump'].mean()
+        coef = df_jump['Log Volume Intensity Jump'].corr(df_jump['Log Volatility Jump'])
+        stat_data.append([event, region, num_obs, avg_vola, avg_volume, coef])
+
+    columns = ['Event', 'Region', 'No. of Obs.', 'Log Volatility', 'Log Volume', 'Coefficient']
+    df_stat = pd.DataFrame(stat_data, columns=columns).sort_values(by='Region')
+    df_stat.to_excel(os.path.join('output', instrument + '_announcements_stat.xlsx'), index=False)
+    print(f'Output announcement statistics spread sheet of {instrument}')
+    return
+
+
 def main():
     start_time = time.time()
+    df_war = import_war()
     for instrument in ['stoxx', 'fgbl']:
         df_min = import_min_data(instrument)
-        df_day = import_day_data(instrument)
-        # print(df_min.head())
+        # df_day = import_day_data(instrument)
+        print(f'{len(df_min)} data points imported for {instrument}')
 
         '''
         1. Summary statistics of return (use % change column ) and volume can be seen in table 1,
         and also need a distribution graph.
         '''
         # Summary statistics table
-        # generate_stat(df_min, instrument)
-        # generate_distribution(df_min, instrument)
+        generate_stat(df_min, instrument)
+        generate_distribution(df_min, instrument)
 
         '''
         2. Both daily logarithmic volume (daily volume) and volatilities (sum of the squared one
         minute returns of each day) can be seen in figure 2.
         '''
-        # generate_plotting(df_min, instrument)
+        generate_plotting(df_min, instrument)
 
         '''
         3. New announcements table, before and after filter comparisons
         4. News filter: after filtering the below news announces, we see them as my “announcements days”
         '''
+        # ALWAYS SET ACTIVE
         df_ann = import_news(instrument)
 
         '''
@@ -388,31 +479,41 @@ def main():
             of the average of squared returns) (and the average trading volume across each minute) 
             to do: adjust the degree of polynomial fitting & x-axis scale
         '''
-        # generate_intraday_pattern(df_min, df_ann, instrument)
+        generate_intraday_pattern(df_min, df_ann, instrument)
 
         '''
         6. Plot the average volume intensity and volatilities changes before and after the news announcements.
             stoxx: EU; US; EU + US
             FGBL: GE; EU + US + GE
         '''
-        # generate_ann_pattern(df_min, df_ann, instrument)
+        generate_ann_pattern(df_min, df_ann, instrument)
+        generate_ann_pattern(df_min, df_war, instrument, True)
 
         ''' 
         7. Plot a figure depicts each events volume and vola change across our data set. 
         '''
-        # generate_ann_plot(df_min, df_ann, instrument)
+        generate_ann_plot(df_min, df_ann, instrument)
+        generate_ann_plot(df_min, df_war, instrument, True)
 
         '''
         8. Normalize the one-minute return and plot the pre and post volume.
         '''
-        # generate_normalized_return(df_min, df_ann, instrument)
+        generate_normalized_return(df_min, df_ann, instrument)
+        generate_normalized_return(df_min, df_war, instrument, True)
 
         '''
-        9.	plot the vola and volume elasticity (use log)
+        9.	Plot the vola and volume elasticity (use log)
             Vola :log(στ )≡log(στ )−log(στ−) and
             Volume:log(mτ )≡log(mτ )−log(mτ−)
         '''
-        # generate_jump_regression(df_min, df_ann, instrument)
+        generate_jump_regression(df_min, df_ann, instrument)
+        generate_jump_regression(df_min, df_war, instrument, True)
+
+        '''
+        10. Create a spread sheet grouping the data by event type, including the following data:
+            number of observations; log volatility; lgo volume; coefficient
+        '''
+        generate_ann_stat(df_min, df_ann, instrument)
 
     print(f'Program finished in {time.time() - start_time}s')
     exit(0)
