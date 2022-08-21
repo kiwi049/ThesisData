@@ -14,65 +14,77 @@ Plotted the volume and vola change around the war events for stoxx
 Generated normalized return chart around announcements for stoxx
 Generated normalized return chart around war events for stoxx
 Plotted vola jump of announcements for stoxx
-Average log volatility jump of announcements for stoxx: 0.15613876024454226
-Average log volume intensity jump of announcements for stoxx: 0.0849020512766386
+Average log volatility jump of announcements for stoxx: 0.2721054403052363
+Average log volume intensity jump of announcements for stoxx: 0.18226362342989066
                             OLS Regression Results                            
 ==============================================================================
-Dep. Variable:                      y   R-squared:                       0.254
-Model:                            OLS   Adj. R-squared:                  0.249
-Method:                 Least Squares   F-statistic:                     50.78
-Date:                Sat, 20 Aug 2022   Prob (F-statistic):           4.13e-11
-Time:                        17:57:17   Log-Likelihood:                 53.822
-No. Observations:                 151   AIC:                            -103.6
-Df Residuals:                     149   BIC:                            -97.61
+Dep. Variable:                      y   R-squared:                       0.325
+Model:                            OLS   Adj. R-squared:                  0.317
+Method:                 Least Squares   F-statistic:                     38.54
+Date:                Sun, 21 Aug 2022   Prob (F-statistic):           2.25e-08
+Time:                        16:23:45   Log-Likelihood:                 47.206
+No. Observations:                  82   AIC:                            -90.41
+Df Residuals:                      80   BIC:                            -85.60
 Df Model:                           1                                         
 Covariance Type:            nonrobust                                         
 ==============================================================================
                  coef    std err          t      P>|t|      [0.025      0.975]
 ------------------------------------------------------------------------------
-const          0.0146      0.017      0.857      0.393      -0.019       0.048
-x1             0.4503      0.063      7.126      0.000       0.325       0.575
+const          0.0485      0.026      1.839      0.070      -0.004       0.101
+x1             0.4916      0.079      6.208      0.000       0.334       0.649
 ==============================================================================
-Omnibus:                       27.320   Durbin-Watson:                   1.878
-Prob(Omnibus):                  0.000   Jarque-Bera (JB):               85.382
-Skew:                           0.628   Prob(JB):                     2.88e-19
-Kurtosis:                       6.463   Cond. No.                         4.67
-==============================================================================
-
-Notes:
-[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
-Plotted vola jump of war events for stoxx
-Average log volatility jump of war events for stoxx: -0.10087372673028908
-Average log volume intensity jump of war events for stoxx: -0.1492720237989955
-                            OLS Regression Results                            
-==============================================================================
-Dep. Variable:                      y   R-squared:                       0.013
-Model:                            OLS   Adj. R-squared:                 -0.184
-Method:                 Least Squares   F-statistic:                   0.06662
-Date:                Sat, 20 Aug 2022   Prob (F-statistic):              0.807
-Time:                        17:57:18   Log-Likelihood:               -0.86509
-No. Observations:                   7   AIC:                             5.730
-Df Residuals:                       5   BIC:                             5.622
-Df Model:                           1                                         
-Covariance Type:            nonrobust                                         
-==============================================================================
-                 coef    std err          t      P>|t|      [0.025      0.975]
-------------------------------------------------------------------------------
-const         -0.1240      0.157     -0.792      0.464      -0.527       0.279
-x1             0.2501      0.969      0.258      0.807      -2.240       2.740
-==============================================================================
-Omnibus:                          nan   Durbin-Watson:                   2.449
-Prob(Omnibus):                    nan   Jarque-Bera (JB):                3.638
-Skew:                          -1.650   Prob(JB):                        0.162
-Kurtosis:                       4.257   Cond. No.                         7.99
+Omnibus:                       32.491   Durbin-Watson:                   1.974
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):               78.283
+Skew:                           1.350   Prob(JB):                     1.00e-17
+Kurtosis:                       6.952   Cond. No.                         5.60
 ==============================================================================
 
 Notes:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
 C:\winapp\Anaconda\envs\sample\lib\site-packages\statsmodels\stats\stattools.py:74: ValueWarning:
 
-omni_normtest is not valid with less than 8 observations; 7 samples were given.
+omni_normtest is not valid with less than 8 observations; 2 samples were given.
 
+C:\winapp\Anaconda\envs\sample\lib\site-packages\statsmodels\regression\linear_model.py:1749: RuntimeWarning:
+
+divide by zero encountered in divide
+
+C:\winapp\Anaconda\envs\sample\lib\site-packages\statsmodels\regression\linear_model.py:1749: RuntimeWarning:
+
+invalid value encountered in double_scalars
+
+C:\winapp\Anaconda\envs\sample\lib\site-packages\statsmodels\regression\linear_model.py:1671: RuntimeWarning:
+
+divide by zero encountered in double_scalars
+
+Plotted vola jump of war events for stoxx
+Average log volatility jump of war events for stoxx: 0.07535336658379133
+Average log volume intensity jump of war events for stoxx: 0.06385167578709616
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      y   R-squared:                       1.000
+Model:                            OLS   Adj. R-squared:                    nan
+Method:                 Least Squares   F-statistic:                       nan
+Date:                Sun, 21 Aug 2022   Prob (F-statistic):                nan
+Time:                        16:23:45   Log-Likelihood:                 73.408
+No. Observations:                   2   AIC:                            -142.8
+Df Residuals:                       0   BIC:                            -145.4
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.2154        inf          0        nan         nan         nan
+x1            -2.0118        inf         -0        nan         nan         nan
+==============================================================================
+Omnibus:                          nan   Durbin-Watson:                   0.000
+Prob(Omnibus):                    nan   Jarque-Bera (JB):                0.750
+Skew:                           0.000   Prob(JB):                        0.687
+Kurtosis:                       0.000   Cond. No.                         146.
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
 Output announcement statistics spread sheet of stoxx
 Imported minute data of fgbl
 288445 data points imported for fgbl
@@ -88,66 +100,69 @@ Plotted the volume and vola change around the war events for fgbl
 Generated normalized return chart around announcements for fgbl
 Generated normalized return chart around war events for fgbl
 Plotted vola jump of announcements for fgbl
-Average log volatility jump of announcements for fgbl: 0.13553101877784093
-Average log volume intensity jump of announcements for fgbl: 0.16564496391822858
+Average log volatility jump of announcements for fgbl: 0.25071167429467217
+Average log volume intensity jump of announcements for fgbl: 0.3445457345191699
                             OLS Regression Results                            
 ==============================================================================
-Dep. Variable:                      y   R-squared:                       0.437
-Model:                            OLS   Adj. R-squared:                  0.435
-Method:                 Least Squares   F-statistic:                     179.4
-Date:                Sat, 20 Aug 2022   Prob (F-statistic):           1.17e-30
-Time:                        17:59:02   Log-Likelihood:                -19.789
-No. Observations:                 233   AIC:                             43.58
-Df Residuals:                     231   BIC:                             50.48
+Dep. Variable:                      y   R-squared:                       0.353
+Model:                            OLS   Adj. R-squared:                  0.348
+Method:                 Least Squares   F-statistic:                     72.03
+Date:                Sun, 21 Aug 2022   Prob (F-statistic):           3.80e-14
+Time:                        16:25:31   Log-Likelihood:                 9.5428
+No. Observations:                 134   AIC:                            -15.09
+Df Residuals:                     132   BIC:                            -9.290
 Df Model:                           1                                         
 Covariance Type:            nonrobust                                         
 ==============================================================================
                  coef    std err          t      P>|t|      [0.025      0.975]
 ------------------------------------------------------------------------------
-const          0.0119      0.021      0.574      0.567      -0.029       0.053
-x1             1.1342      0.085     13.394      0.000       0.967       1.301
+const          0.1135      0.034      3.384      0.001       0.047       0.180
+x1             0.9214      0.109      8.487      0.000       0.707       1.136
 ==============================================================================
-Omnibus:                      109.577   Durbin-Watson:                   1.741
-Prob(Omnibus):                  0.000   Jarque-Bera (JB):             3311.031
-Skew:                          -1.167   Prob(JB):                         0.00
-Kurtosis:                      21.320   Cond. No.                         4.98
+Omnibus:                       88.431   Durbin-Watson:                   2.210
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              476.976
+Skew:                           2.406   Prob(JB):                    2.67e-104
+Kurtosis:                      10.892   Cond. No.                         5.89
 ==============================================================================
 
 Notes:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+C:\winapp\Anaconda\envs\sample\lib\site-packages\statsmodels\regression\linear_model.py:1736: RuntimeWarning:
+
+divide by zero encountered in double_scalars
+
+C:\winapp\Anaconda\envs\sample\lib\site-packages\statsmodels\stats\stattools.py:74: ValueWarning:
+
+omni_normtest is not valid with less than 8 observations; 2 samples were given.
+
 Plotted vola jump of war events for fgbl
-Average log volatility jump of war events for fgbl: -0.00605215786799567
-Average log volume intensity jump of war events for fgbl: -0.03874904307085409
+Average log volatility jump of war events for fgbl: 0.2441337465722535
+Average log volume intensity jump of war events for fgbl: 0.44378657614450123
                             OLS Regression Results                            
 ==============================================================================
-Dep. Variable:                      y   R-squared:                       0.259
-Model:                            OLS   Adj. R-squared:                  0.198
-Method:                 Least Squares   F-statistic:                     4.202
-Date:                Sat, 20 Aug 2022   Prob (F-statistic):             0.0629
-Time:                        17:59:03   Log-Likelihood:               -0.79964
-No. Observations:                  14   AIC:                             5.599
-Df Residuals:                      12   BIC:                             6.877
-Df Model:                           1                                         
+Dep. Variable:                      y   R-squared:                        -inf
+Model:                            OLS   Adj. R-squared:                   -inf
+Method:                 Least Squares   F-statistic:                       nan
+Date:                Sun, 21 Aug 2022   Prob (F-statistic):                nan
+Time:                        16:25:32   Log-Likelihood:                 72.022
+No. Observations:                   2   AIC:                            -142.0
+Df Residuals:                       1   BIC:                            -143.4
+Df Model:                           0                                         
 Covariance Type:            nonrobust                                         
 ==============================================================================
                  coef    std err          t      P>|t|      [0.025      0.975]
 ------------------------------------------------------------------------------
-const         -0.0327      0.074     -0.442      0.666      -0.194       0.129
-x1             0.9960      0.486      2.050      0.063      -0.063       2.055
+const          1.8178   2.27e-16   7.99e+15      0.000       1.818       1.818
 ==============================================================================
-Omnibus:                        0.319   Durbin-Watson:                   2.316
-Prob(Omnibus):                  0.853   Jarque-Bera (JB):                0.453
-Skew:                          -0.246   Prob(JB):                        0.797
-Kurtosis:                       2.269   Cond. No.                         6.57
+Omnibus:                          nan   Durbin-Watson:                   0.000
+Prob(Omnibus):                    nan   Jarque-Bera (JB):                0.750
+Skew:                           0.000   Prob(JB):                        0.687
+Kurtosis:                       0.000   Cond. No.                         1.00
 ==============================================================================
 
 Notes:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
-C:\winapp\Anaconda\envs\sample\lib\site-packages\scipy\stats\_stats_py.py:1477: UserWarning:
-
-kurtosistest only valid for n>=20 ... continuing anyway, n=14
-
 Output announcement statistics spread sheet of fgbl
-Program finished in 175.70858025550842s
+Program finished in 172.37839341163635s
 
 Process finished with exit code 0

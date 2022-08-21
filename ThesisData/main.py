@@ -366,17 +366,16 @@ def generate_jump_regression(df, df_news, instrument, war_flag=False):
         post_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_post]
         df_pre = df[df['Local Time'].isin(pre_dt_list)].copy()
         df_post = df[df['Local Time'].isin(post_dt_list)].copy()
-        df_pre['Volatility'] = df_pre['%Chg'].pow(2)
-        df_post['Volatility'] = df_post['%Chg'].pow(2)
 
         if df_pre.empty or df_post.empty:
             continue
         else:
-            line_data = [np.log10(np.sqrt(df_post['Volatility'].mean())) - np.log10(np.sqrt(df_pre['Volatility'].mean())),
+            line_data = [np.log10(np.sqrt(df_post['%Chg'].pow(2).mean())) - np.log10(np.sqrt(df_pre['%Chg'].pow(2).mean())),
                          np.log10(df_post['Volume'].mean()) - np.log10(df_pre['Volume'].mean())]
             df_jump_list.append(line_data)
     columns = ['Log Volatility Jump', 'Log Volume Intensity Jump']
     df_jump = pd.DataFrame(df_jump_list, columns=columns)
+    df_jump = df_jump[(df_jump['Log Volatility Jump'] > 0) & (df_jump['Log Volume Intensity Jump'] > 0)]
 
     fig = px.scatter(df_jump, x='Log Volatility Jump', y='Log Volume Intensity Jump', trendline='ols')
     name = instrument + '_war_' if war_flag else instrument
@@ -417,18 +416,17 @@ def generate_ann_stat(df, df_news, instrument):
             post_dt_list = [row['Date Time'] + timedelta(minutes=minute) for minute in min_range_post]
             df_pre = df[df['Local Time'].isin(pre_dt_list)].copy()
             df_post = df[df['Local Time'].isin(post_dt_list)].copy()
-            df_pre['Volatility'] = df_pre['%Chg'].pow(2)
-            df_post['Volatility'] = df_post['%Chg'].pow(2)
 
             if df_pre.empty or df_post.empty:
                 continue
             else:
                 line_data = [
-                    np.log10(np.sqrt(df_post['Volatility'].mean())) - np.log10(np.sqrt(df_pre['Volatility'].mean())),
+                    np.log10(np.sqrt(df_post['%Chg'].pow(2).mean())) - np.log10(np.sqrt(df_pre['%Chg'].pow(2).mean())),
                     np.log10(df_post['Volume'].mean()) - np.log10(df_pre['Volume'].mean())]
                 df_jump_list.append(line_data)
         columns = ['Log Volatility Jump', 'Log Volume Intensity Jump']
         df_jump = pd.DataFrame(df_jump_list, columns=columns)
+        df_jump = df_jump[(df_jump['Log Volatility Jump'] > 0) & (df_jump['Log Volume Intensity Jump'] > 0)]
 
         region = df_event.loc[0, 'Region']
         num_obs = len(df_event)
